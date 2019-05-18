@@ -1,8 +1,11 @@
 package digital.sepa.nfc;
 
 import android.content.Context;
+import android.util.Log;
 import digital.sepa.nfc.model.CardInfo;
 import digital.sepa.nfc.util.Utils;
+
+import static digital.sepa.nfc.util.Utils.TAG;
 
 /**
  * Very simple dummy-style controller class of this app. At the moment simply
@@ -12,54 +15,56 @@ import digital.sepa.nfc.util.Utils;
  */
 public class AppController {
 
+
+
     /**
      * singleton instance
      */
-    private static volatile AppController _instance = null;
+    private static volatile AppController instance = null;
 
-    private CardInfo _cardInfo;
-    private StringBuilder _log;
+    private CardInfo cardInfo;
+    private StringBuilder log;
 
     /**
      * Get singleton object
      */
     public static synchronized AppController getInstance() {
-        if (_instance == null) {
-            _instance = new AppController();
+        if (instance == null) {
+            instance = new AppController();
         }
-        return _instance;
+        return instance;
     }
 
     /**
      * Private consructor
      */
     private AppController() {
-        this._cardInfo = null;
-        this._log = new StringBuilder();
+        this.cardInfo = null;
+        this.log = new StringBuilder();
     }
 
     /**
-     * @return the _cardInfo
+     * @return the cardInfo
      */
     public CardInfo getCardInfo() {
-        return _cardInfo;
+        return cardInfo;
     }
 
     /**
-     * @return the _cardInfo
+     * @return the cardInfo
      */
     public CardInfo getCardInfoNullSafe(Context ctx) {
-        if (_cardInfo == null) {
+        if (cardInfo == null) {
             return new CardInfo(ctx);
         }
-        return _cardInfo;
+        return cardInfo;
     }
 
     /**
-     * @param _cardInfo the _cardInfo to set
+     * @param _cardInfo the cardInfo to set
      */
     public void setCardInfo(CardInfo cardInfo) {
-        this._cardInfo = cardInfo;
+        this.cardInfo = cardInfo;
     }
 
     /**
@@ -68,23 +73,24 @@ public class AppController {
      * @param msg
      */
     public void log(String msg) {
-        _log.append(Utils.getFullTimestampString());
-        _log.append(": ");
-        _log.append(msg);
-        _log.append("\n");
+        log.append(Utils.getFullTimestampString());
+        log.append(": ");
+        log.append(msg);
+        log.append("\n");
+        Log.d(TAG, msg);
     }
 
     /**
      * @return full log
      */
     public String getLog() {
-        return _log.toString();
+        return log.toString();
     }
 
     /**
      * clear log
      */
     public void clearLog() {
-        _log = new StringBuilder();
+        log = new StringBuilder();
     }
 }

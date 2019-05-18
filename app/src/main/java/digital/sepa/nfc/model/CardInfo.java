@@ -1,14 +1,11 @@
 package digital.sepa.nfc.model;
 
 import android.content.Context;
-import digital.sepa.nfc.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static digital.sepa.nfc.util.Utils.bytesToHex;
-import static digital.sepa.nfc.util.Utils.formatBalance;
 
 /**
  * Represents the data read from a bankomat card.
@@ -23,8 +20,8 @@ public class CardInfo {
     private boolean containsTxLogs;
     private boolean visaCard;
     private boolean masterCard;
-    private long quickBalance;
     private int pinRetryCounter;
+    private String personalAccounNumber;
     private String quickCurrency;
     private Context ctx;
 
@@ -57,9 +54,6 @@ public class CardInfo {
      */
     public void setNfcTagId(byte[] nfcTagId) {
         this.nfcTagId = nfcTagId;
-        this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                .getString(R.string.lbl_nfc_tag_id), "0x"
-                + bytesToHex(nfcTagId)));
     }
 
     /**
@@ -134,12 +128,6 @@ public class CardInfo {
      */
     public void setQuickCard(boolean quickCard) {
         this.quickCard = quickCard;
-        if (quickCard) {
-            this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                    .getString(R.string.lbl_is_quick_card), quickCard ? ctx
-                    .getResources().getString(R.string.yes) : ctx
-                    .getResources().getString(R.string.no)));
-        }
     }
 
     /**
@@ -189,10 +177,6 @@ public class CardInfo {
      */
     public void setContainsTxLogs(boolean containsTxLogs) {
         this.containsTxLogs = containsTxLogs;
-        this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                .getString(R.string.lbl_contains_emv_log_entry_tag),
-                containsTxLogs ? ctx.getResources().getString(R.string.yes)
-                        : ctx.getResources().getString(R.string.no)));
     }
 
     /**
@@ -200,12 +184,6 @@ public class CardInfo {
      */
     public void setMaestroCard(boolean maestroCard) {
         this.maestroCard = maestroCard;
-        if (maestroCard) {
-            this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                    .getString(R.string.lbl_is_maestro_card),
-                    maestroCard ? ctx.getResources().getString(R.string.yes)
-                            : ctx.getResources().getString(R.string.no)));
-        }
     }
 
     /**
@@ -213,13 +191,6 @@ public class CardInfo {
      */
     public void setVisaCard(boolean visaCard) {
         this.visaCard = visaCard;
-        // do not show this label, if it is no VISA card
-        if (visaCard) {
-            this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                    .getString(R.string.lbl_is_visa_card), visaCard ? ctx
-                    .getResources().getString(R.string.yes) : ctx
-                    .getResources().getString(R.string.no)));
-        }
     }
 
     /**
@@ -227,47 +198,8 @@ public class CardInfo {
      */
     public void setMasterCard(boolean masterCarrd) {
         this.masterCard = masterCarrd;
-        // do not show this label, if it is no Mastercard
-        if (masterCarrd) {
-            this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                    .getString(R.string.lbl_is_mastercard), masterCarrd ? ctx
-                    .getResources().getString(R.string.yes) : ctx
-                    .getResources().getString(R.string.no)));
-        }
     }
 
-    /**
-     * @return the quickBalance
-     */
-    public long getQuickBalance() {
-        return quickBalance;
-    }
-
-    /**
-     * @param quickBalance the quickBalance to set
-     */
-    public void setQuickBalance(long quickBalance) {
-        this.quickBalance = quickBalance;
-        this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                .getString(R.string.lbl_quick_balance),
-                formatBalance(quickBalance)));
-    }
-
-    /**
-     * @return the quick currency
-     */
-    public String getQuickCurrency() {
-        return quickCurrency;
-    }
-
-    /**
-     * @param quickCurrency the quickCurrency to set
-     */
-    public void setQuickCurrency(String quickCurrency) {
-        this.quickCurrency = quickCurrency;
-        this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                .getString(R.string.lbl_quick_currency), quickCurrency));
-    }
 
     /**
      * @return the pin retry counter
@@ -281,25 +213,32 @@ public class CardInfo {
      */
     public void setPinRetryCounter(int pinRetryCounter) {
         this.pinRetryCounter = pinRetryCounter;
-        this.addKeyValuePair(new InfoKeyValuePair(ctx.getResources()
-                .getString(R.string.lbl_remaining_pin_retries), Integer
-                .toString(pinRetryCounter)));
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
-        return "CardInfo [nfcTagId=" + Arrays.toString(nfcTagId)
-                + ", quickCard=" + quickCard + ", maestroCard="
-                + maestroCard + ", visaCard=" + visaCard
-                + ", quickBalance=" + quickBalance + ", pinRetryCounter="
-                + pinRetryCounter + ", quickCurrency=" + quickCurrency
-                + ", ctx=" + ctx + ", transactionLog=" + transactionLog
-                + ", infoKeyValuePairs=" + infoKeyValuePairs + "]";
+        return "CardInfo{" +
+                "nfcTagId=" + Arrays.toString(nfcTagId) +
+                ", quickCard=" + quickCard +
+                ", maestroCard=" + maestroCard +
+                ", containsTxLogs=" + containsTxLogs +
+                ", visaCard=" + visaCard +
+                ", masterCard=" + masterCard +
+                ", pinRetryCounter=" + pinRetryCounter +
+                ", personalAccounNumber='" + personalAccounNumber + '\'' +
+                ", quickCurrency='" + quickCurrency + '\'' +
+                ", ctx=" + ctx +
+                ", quickLog=" + quickLog +
+                ", transactionLog=" + transactionLog +
+                ", infoKeyValuePairs=" + infoKeyValuePairs +
+                '}';
     }
 
+    public String getPersonalAccounNumber() {
+        return personalAccounNumber;
+    }
+
+    public void setPersonalAccounNumber(String personalAccounNumber) {
+        this.personalAccounNumber = personalAccounNumber;
+    }
 }

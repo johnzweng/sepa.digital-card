@@ -8,33 +8,33 @@ package digital.sepa.nfc.iso7816emv;
  */
 public class TagAndValue {
 
-    private final EmvTag _tag;
-    private final byte[] _value;
+    private final EmvTag tag;
+    private final byte[] value;
 
     /**
      * Constructor
      *
-     * @param _tag
-     * @param _value
+     * @param tag
+     * @param value
      */
     public TagAndValue(EmvTag tag, byte[] value) {
         super();
-        this._tag = tag;
-        this._value = value;
+        this.tag = tag;
+        this.value = value;
     }
 
     /**
-     * @return the _tag
+     * @return the tag
      */
     public EmvTag getTag() {
-        return _tag;
+        return tag;
     }
 
     /**
-     * @return the _value
+     * @return the value
      */
     public byte[] getValue() {
-        return _value;
+        return value;
     }
 
 }

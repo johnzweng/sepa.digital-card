@@ -516,7 +516,6 @@ public class EmvUtils {
      * @param pin                 the PIN to verify
      * @param transmitInPlaintext
      * @return
-     * @throws NumberFormatException if PIN cannot be parsed as integer
      */
     public static byte[] createApduVerifyPIN(String pin,
                                              boolean transmitInPlaintext) throws NumberFormatException {
@@ -720,7 +719,7 @@ public class EmvUtils {
     /**
      * Parse timestamp from quick log entry
      *
-     * @param date
+     * @param days
      * @param time
      * @return date or null if days are 0000000
      * @throws ParseException
@@ -789,7 +788,7 @@ public class EmvUtils {
      *
      * @param stream
      * @return
-     * @throws NfcException
+     * @throws TlvParsingException
      */
     public static BERTLV getNextTLV(ByteArrayInputStream stream)
             throws TlvParsingException {
@@ -904,7 +903,7 @@ public class EmvUtils {
      * @param data
      * @param indentLength
      * @return
-     * @throws NfcException
+     * @throws TlvParsingException
      */
     public static String prettyPrintBerTlvAPDUResponse(byte[] data,
                                                        int indentLength) throws TlvParsingException {
@@ -971,9 +970,8 @@ public class EmvUtils {
      * source: https://code.google.com/p/javaemvreader/
      *
      * @param data
-     * @param indentLength
      * @return
-     * @throws NfcException
+     * @throws TlvParsingException
      */
     public static List<TagAndValue> getTagsFromBerTlvAPDUResponse(byte[] data)
             throws TlvParsingException {
@@ -1014,7 +1012,7 @@ public class EmvUtils {
                 try {
                     InfoKeyValuePair expirationDate = new InfoKeyValuePair(ctx
                             .getResources().getString(
-                                    R.string.lbl_expiration_date),
+                                    R.string.lbl_expiration_date), "5F24",
                             formatDateOnly(getDateFromBcdBytes(tagAndValue
                                     .getValue())));
                     resultList.add(expirationDate);
@@ -1028,7 +1026,7 @@ public class EmvUtils {
                 try {
                     InfoKeyValuePair expirationDate = new InfoKeyValuePair(ctx
                             .getResources().getString(
-                                    R.string.lbl_effective_date),
+                                    R.string.lbl_effective_date), "5F25",
                             formatDateOnly(getDateFromBcdBytes(tagAndValue
                                     .getValue())));
                     resultList.add(expirationDate);
@@ -1049,7 +1047,7 @@ public class EmvUtils {
                                 0, primaryAccountNumber.length() - 1);
                     }
                     resultList.add(new InfoKeyValuePair(ctx.getResources()
-                            .getString(R.string.lbl_primary_account_number),
+                            .getString(R.string.lbl_primary_account_number), "5A",
                             prettyPrintString(primaryAccountNumber, 4)));
                 }
             }
@@ -1064,7 +1062,7 @@ public class EmvUtils {
                             .add(new InfoKeyValuePair(
                                     ctx.getResources()
                                             .getString(
-                                                    R.string.lbl_application_transaction_counter),
+                                                    R.string.lbl_application_transaction_counter), "9F36",
                                     Integer.toString(currentTransactionCounter)));
                 }
             }
@@ -1077,7 +1075,7 @@ public class EmvUtils {
             if ("C9".equalsIgnoreCase(tagBytesHexString)) {
                 InfoKeyValuePair crmCurrency = new InfoKeyValuePair(ctx
                         .getResources().getString(
-                                R.string.lbl_card_risk_management_currency),
+                                R.string.lbl_card_risk_management_currency), "C9",
                         Iso4217CurrencyCodes.getCurrencyAsString(tagAndValue
                                 .getValue()));
                 resultList.add(crmCurrency);
@@ -1087,7 +1085,7 @@ public class EmvUtils {
             if ("C8".equalsIgnoreCase(tagBytesHexString)) {
                 InfoKeyValuePair crmCountry = new InfoKeyValuePair(ctx
                         .getResources().getString(
-                                R.string.lbl_card_risk_management_country),
+                                R.string.lbl_card_risk_management_country), "C8",
                         Iso3166CountryCodes.getCountryAsString(tagAndValue
                                 .getValue()));
                 resultList.add(crmCountry);
@@ -1097,7 +1095,7 @@ public class EmvUtils {
             if ("9F14".equalsIgnoreCase(tagBytesHexString)) {
                 InfoKeyValuePair kvPair = new InfoKeyValuePair(
                         ctx.getResources().getString(
-                                R.string.lbl_lower_consecutive_offline_limit),
+                                R.string.lbl_lower_consecutive_offline_limit), "9F14",
                         Integer.toString(byteArrayToInt(tagAndValue.getValue())));
                 resultList.add(kvPair);
             }
@@ -1106,7 +1104,7 @@ public class EmvUtils {
             if ("9F23".equalsIgnoreCase(tagBytesHexString)) {
                 InfoKeyValuePair kvPair = new InfoKeyValuePair(
                         ctx.getResources().getString(
-                                R.string.lbl_upper_consecutive_offline_limit),
+                                R.string.lbl_upper_consecutive_offline_limit), "9F23",
                         Integer.toString(byteArrayToInt(tagAndValue.getValue())));
                 resultList.add(kvPair);
             }
@@ -1116,7 +1114,7 @@ public class EmvUtils {
                 InfoKeyValuePair kvPair = new InfoKeyValuePair(
                         ctx.getResources()
                                 .getString(
-                                        R.string.lbl_lower_consecutive_offline_tx_amount),
+                                        R.string.lbl_lower_consecutive_offline_tx_amount), "CA",
                         formatBalance(getAmountFromBcdBytes(tagAndValue
                                 .getValue())));
                 resultList.add(kvPair);
@@ -1127,7 +1125,7 @@ public class EmvUtils {
                 InfoKeyValuePair kvPair = new InfoKeyValuePair(
                         ctx.getResources()
                                 .getString(
-                                        R.string.lbl_upper_consecutive_offline_tx_amount),
+                                        R.string.lbl_upper_consecutive_offline_tx_amount), "CB",
                         formatBalance(getAmountFromBcdBytes(tagAndValue
                                 .getValue())));
                 resultList.add(kvPair);
@@ -1148,10 +1146,8 @@ public class EmvUtils {
     /**
      * Takes a date value as used in CPLC Date fields (represented by 2 bytes)
      *
-     * @param paramByte1
-     * @param paramByte2
+     * @param dateBytes
      * @return
-     * @throws IllegalArgumentException
      */
     public static Date calculateCplcDate(byte[] dateBytes)
             throws IllegalArgumentException {
@@ -1200,7 +1196,7 @@ public class EmvUtils {
      * checks if the given 3 byte long array looks like a valid BCD encoded date
      * value
      *
-     * @param time
+     * @param date
      * @return
      */
     @SuppressWarnings("unused")

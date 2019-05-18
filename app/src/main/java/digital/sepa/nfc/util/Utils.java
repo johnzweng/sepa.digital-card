@@ -33,7 +33,7 @@ public class Utils {
     /**
      * Log tag
      */
-    public final static String TAG = "BankomatInfos";
+    public final static String TAG = "SEPA.digital";
 
     private static SimpleDateFormat fullTimeWithDateFormat = new SimpleDateFormat(
             "dd.MM.yyyy HH:mm:ss", Locale.US);
