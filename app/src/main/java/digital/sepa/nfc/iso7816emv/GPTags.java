@@ -17,50 +17,50 @@ package digital.sepa.nfc.iso7816emv;
 
 /**
  * Global Platform tags
- * 
+ *
  * @author sasc
  */
 public class GPTags {
 
-	public static final EmvTag CARD_MANAGEMENT_TYPE_AND_VERSION_OID = new TagImpl(
-			"60", TagValueType.BINARY, "Card Management Type And Version OID",
-			"'Application Tag 0'. {globalPlatform 2 v} - GP version in last 3 bytes");
-	
-	public static final EmvTag CARD_IDENTIFICATION_SCHEME_OID = new TagImpl(
-			"63",
-			TagValueType.BINARY,
-			"Card Identification Scheme OID",
-			"{globalPlatform 3} - Indicates a GP card that is uniquely identified by the Issuer Identification Number (IIN) and Card Image Number (CIN)");
-	
-	public static final EmvTag SECURE_CHANNEL_OID = new TagImpl("64",
-			TagValueType.BINARY,
-			"Secure Channel Protocol and implementation options OID",
-			"{globalPlatform 4 scp i}");
-	
-	public static final EmvTag CARD_CONFIGURATION_DETAILS = new TagImpl("65",
-			TagValueType.BINARY, "Card Configuration Details", "");
-	
-	public static final EmvTag CARD_CHIP_DETAILS = new TagImpl("66",
-			TagValueType.BINARY, "Card / Chip Details", "");
+    public static final EmvTag CARD_MANAGEMENT_TYPE_AND_VERSION_OID = new TagImpl(
+            "60", TagValueType.BINARY, "Card Management Type And Version OID",
+            "'Application Tag 0'. {globalPlatform 2 v} - GP version in last 3 bytes");
 
-	public static final EmvTag SECURITY_DOMAIN_MANAGEMENT_DATA = new TagImpl(
-			"73", TagValueType.BINARY, "Security domain management data", "");
+    public static final EmvTag CARD_IDENTIFICATION_SCHEME_OID = new TagImpl(
+            "63",
+            TagValueType.BINARY,
+            "Card Identification Scheme OID",
+            "{globalPlatform 3} - Indicates a GP card that is uniquely identified by the Issuer Identification Number (IIN) and Card Image Number (CIN)");
 
-	public static final EmvTag KEY_INFO_DATA = new TagImpl("c0",
-			TagValueType.BINARY, "Key Information Data", "");
-	
-	public static final EmvTag KEY_INFO_TEMPLATE = new TagImpl("e0",
-			TagValueType.BINARY, "Key Information Template", "");
+    public static final EmvTag SECURE_CHANNEL_OID = new TagImpl("64",
+            TagValueType.BINARY,
+            "Secure Channel Protocol and implementation options OID",
+            "{globalPlatform 4 scp i}");
 
-	public static final EmvTag APPLICATION_PRODUCTION_LIFECYCLE_DATA = new TagImpl(
-			"9f6e", TagValueType.BINARY,
-			"Application production life cycle data", "");
-	
-	public static final EmvTag MAXIMUM_LENGTH_COMMAND_DATA_FIELD = new TagImpl(
-			"9f65", TagValueType.BINARY,
-			"Max length of data field in command message", "");
-	
-	public static final EmvTag CPLC = new TagImpl("9f7f", TagValueType.BINARY,
-			"Card Production Life Cycle Data", "");
-	
+    public static final EmvTag CARD_CONFIGURATION_DETAILS = new TagImpl("65",
+            TagValueType.BINARY, "Card Configuration Details", "");
+
+    public static final EmvTag CARD_CHIP_DETAILS = new TagImpl("66",
+            TagValueType.BINARY, "Card / Chip Details", "");
+
+    public static final EmvTag SECURITY_DOMAIN_MANAGEMENT_DATA = new TagImpl(
+            "73", TagValueType.BINARY, "Security domain management data", "");
+
+    public static final EmvTag KEY_INFO_DATA = new TagImpl("c0",
+            TagValueType.BINARY, "Key Information Data", "");
+
+    public static final EmvTag KEY_INFO_TEMPLATE = new TagImpl("e0",
+            TagValueType.BINARY, "Key Information Template", "");
+
+    public static final EmvTag APPLICATION_PRODUCTION_LIFECYCLE_DATA = new TagImpl(
+            "9f6e", TagValueType.BINARY,
+            "Application production life cycle data", "");
+
+    public static final EmvTag MAXIMUM_LENGTH_COMMAND_DATA_FIELD = new TagImpl(
+            "9f65", TagValueType.BINARY,
+            "Max length of data field in command message", "");
+
+    public static final EmvTag CPLC = new TagImpl("9f7f", TagValueType.BINARY,
+            "Card Production Life Cycle Data", "");
+
 }

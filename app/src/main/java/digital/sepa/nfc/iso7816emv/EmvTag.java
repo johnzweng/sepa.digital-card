@@ -17,29 +17,29 @@ package digital.sepa.nfc.iso7816emv;
 
 /**
  * Copied from https://code.google.com/p/javaemvreader/
- * 
+ *
  * @author sasc
  */
 public interface EmvTag {
 
-	public enum Class {
-		UNIVERSAL, APPLICATION, CONTEXT_SPECIFIC, PRIVATE
-	}
+    public enum Class {
+        UNIVERSAL, APPLICATION, CONTEXT_SPECIFIC, PRIVATE
+    }
 
-	boolean isConstructed();
+    boolean isConstructed();
 
-	byte[] getTagBytes();
+    byte[] getTagBytes();
 
-	String getName();
+    String getName();
 
-	String getDescription();
+    String getDescription();
 
-	TagType getType();
+    TagType getType();
 
-	TagValueType getTagValueType();
+    TagValueType getTagValueType();
 
-	Class getTagClass();
+    Class getTagClass();
 
-	int getNumTagBytes();
+    int getNumTagBytes();
 
 }

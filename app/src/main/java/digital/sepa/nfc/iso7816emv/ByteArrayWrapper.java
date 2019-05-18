@@ -21,38 +21,38 @@ import static digital.sepa.nfc.util.Utils.copyByteArray;
 
 public final class ByteArrayWrapper {
 
-	private final byte[] data;
-	private final int hashcode;
+    private final byte[] data;
+    private final int hashcode;
 
-	private ByteArrayWrapper(byte[] data) {
-		this.data = data;
-		this.hashcode = Arrays.hashCode(data);
-	}
+    private ByteArrayWrapper(byte[] data) {
+        this.data = data;
+        this.hashcode = Arrays.hashCode(data);
+    }
 
-	public static ByteArrayWrapper wrapperAround(byte[] data) {
-		if (data == null) {
-			throw new NullPointerException();
-		}
-		return new ByteArrayWrapper(data);
-	}
+    public static ByteArrayWrapper wrapperAround(byte[] data) {
+        if (data == null) {
+            throw new NullPointerException();
+        }
+        return new ByteArrayWrapper(data);
+    }
 
-	public static ByteArrayWrapper copyOf(byte[] data) {
-		if (data == null) {
-			throw new NullPointerException();
-		}
-		return new ByteArrayWrapper(copyByteArray(data));
-	}
+    public static ByteArrayWrapper copyOf(byte[] data) {
+        if (data == null) {
+            throw new NullPointerException();
+        }
+        return new ByteArrayWrapper(copyByteArray(data));
+    }
 
-	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof ByteArrayWrapper)) {
-			return false;
-		}
-		return Arrays.equals(data, ((ByteArrayWrapper) other).data);
-	}
+    @Override
+    public boolean equals(Object other) {
+        if (!(other instanceof ByteArrayWrapper)) {
+            return false;
+        }
+        return Arrays.equals(data, ((ByteArrayWrapper) other).data);
+    }
 
-	@Override
-	public int hashCode() {
-		return hashcode;
-	}
+    @Override
+    public int hashCode() {
+        return hashcode;
+    }
 }

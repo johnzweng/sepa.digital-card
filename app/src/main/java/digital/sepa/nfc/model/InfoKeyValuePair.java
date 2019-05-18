@@ -1,47 +1,47 @@
 package digital.sepa.nfc.model;
 
 public class InfoKeyValuePair {
-	private final String _name;
-	private final String _value;
-	private final boolean _isSectionHeader;
+    private final String name;
+    private final String value;
+    private final boolean isSectionHeader;
 
-	/**
-	 * @param _name
-	 * @param _value
-	 */
-	public InfoKeyValuePair(String name, String value) {
-		super();
-		this._name = name;
-		this._value = value;
-		this._isSectionHeader = false;
-	}
+    /**
+     * @param name
+     * @param value
+     */
+    public InfoKeyValuePair(String name, String value) {
+        super();
+        this.name = name;
+        this.value = value;
+        this.isSectionHeader = false;
+    }
 
-	public InfoKeyValuePair(String sectionHeaderName) {
-		super();
-		this._name = sectionHeaderName;
-		this._value = null;
-		this._isSectionHeader = true;
-	}
+    public InfoKeyValuePair(String sectionHeaderName) {
+        super();
+        this.name = sectionHeaderName;
+        this.value = null;
+        this.isSectionHeader = true;
+    }
 
-	/**
-	 * @return the _name
-	 */
-	public String getName() {
-		return _name;
-	}
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 
-	/**
-	 * @return the _value
-	 */
-	public String getValue() {
-		return _value;
-	}
+    /**
+     * @return the value
+     */
+    public String getValue() {
+        return value;
+    }
 
-	/**
-	 * @return _isSectionHeader
-	 */
-	public boolean isSectionHeader() {
-		return _isSectionHeader;
-	}
+    /**
+     * @return isSectionHeader
+     */
+    public boolean isSectionHeader() {
+        return isSectionHeader;
+    }
 
 }

@@ -1,5 +1,6 @@
 package digital.sepa.nfc.ui;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -13,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +22,7 @@ import android.view.View;
 import digital.sepa.nfc.AppController;
 import digital.sepa.nfc.R;
 import digital.sepa.nfc.exceptions.NoSmartCardException;
-import digital.sepa.nfc.iso7816emv.NfcBankomatCardReader;
+import digital.sepa.nfc.iso7816emv.EmvCardReader;
 import digital.sepa.nfc.model.CardInfo;
 import digital.sepa.nfc.util.CustomAlertDialog;
 
@@ -33,6 +35,7 @@ import static digital.sepa.nfc.util.Utils.*;
  *
  * @author Johannes Zweng <johannes@zweng.at>
  */
+@TargetApi(Build.VERSION_CODES.KITKAT)
 public class MainActivity extends Activity implements NfcAdapter.ReaderCallback {
 
     // for NFC stuff
@@ -73,8 +76,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
     protected void onResume() {
         super.onResume();
         if (!isNfcAvailable()) {
-            Intent intent = new Intent(this, NfcDisabledActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, NfcDisabledActivity.class));
             this.finish();
             return;
         }
@@ -172,10 +174,14 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
      * @param show
      */
     private void showProgressAnimation(final boolean show) {
-        viewProgressStatus.setVisibility(show ? View.VISIBLE : View.GONE);
-
-        viewNfcLogo.setVisibility(show ? View.GONE : View.VISIBLE);
-        viewTextViewShowCard.setVisibility(show ? View.GONE : View.VISIBLE);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                viewProgressStatus.setVisibility(show ? View.VISIBLE : View.GONE);
+                viewNfcLogo.setVisibility(show ? View.GONE : View.VISIBLE);
+                viewTextViewShowCard.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
     }
 
     /**
@@ -192,7 +198,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
     }
 
     /**
-     * Represents an asynchronous task (reading the card)
+     * Asynchronous task to read the card)
      */
     public class ReadNfcCardTask extends AsyncTask<Void, Void, Boolean> {
         private final static int ERROR_TAG_LOST = -1;
@@ -201,14 +207,9 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         private Tag nfcTag;
         private int error;
 
-        /**
-         * Constructor
-         *
-         * @param pNfcTag
-         */
-        public ReadNfcCardTask(Tag pNfcTag) {
+        public ReadNfcCardTask(Tag tag) {
             super();
-            this.nfcTag = pNfcTag;
+            this.nfcTag = tag;
         }
 
         @Override
@@ -218,7 +219,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
             try {
                 ctl.log(getResources().getString(R.string.app_name)
                         + " version " + getAppVersion(MainActivity.this));
-                NfcBankomatCardReader reader = new NfcBankomatCardReader(
+                EmvCardReader reader = new EmvCardReader(
                         nfcTag, MainActivity.this);
                 reader.connectIsoDep();
                 // read setting value
@@ -252,6 +253,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
             return true;
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
         @Override
         protected void onPostExecute(final Boolean success) {
             readCardTask = null;
@@ -259,7 +261,6 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
             if (success) {
                 Log.d(TAG, "reading card finished successfully");
                 if (!cardReadingResults.isSupportedCard()) {
-                    showProgressAnimation(false);
                     displaySimpleAlertDialog(
                             MainActivity.this,
                             getResources()
@@ -267,7 +268,14 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
                                             R.string.dialog_title_error_unsupported_card),
                             getResources()
                                     .getString(
-                                            R.string.dialog_text_error_unsupported_card));
+                                            R.string.dialog_text_error_unsupported_card),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressAnimation(false);
+                                }
+                            });
+
                 } else {
                     // show results page
                     Intent intent = new Intent(MainActivity.this,
@@ -275,21 +283,33 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
                     startActivity(intent);
                 }
             } else {
-                showProgressAnimation(false);
+
                 if (error == ERROR_TAG_LOST) {
                     displaySimpleAlertDialog(
                             MainActivity.this,
                             getResources().getString(
                                     R.string.dialog_title_error_card_lost),
                             getResources().getString(
-                                    R.string.dialog_text_error_card_lost));
+                                    R.string.dialog_text_error_card_lost),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressAnimation(false);
+                                }
+                            });
                 } else if (error == ERROR_NO_SMARTCARD) {
                     displaySimpleAlertDialog(
                             MainActivity.this,
                             getResources().getString(
                                     R.string.dialog_title_error_no_smartcard),
                             getResources().getString(
-                                    R.string.dialog_text_error_no_smartcard));
+                                    R.string.dialog_text_error_no_smartcard),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressAnimation(false);
+                                }
+                            });
                 }
                 // In this case we still open the result Activity for allowing
                 // the user to inspect the stacktrace in the Log tab
@@ -318,11 +338,15 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
                             getResources().getString(
                                     R.string.dialog_title_error_unknown),
                             getResources().getString(
-                                    R.string.dialog_text_error_unknown));
+                                    R.string.dialog_text_error_unknown),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressAnimation(false);
+                                }
+                            });
                 }
             }
-            // and hide the progress animation
-            // showProgressAnimation(false);
         }
 
         @Override

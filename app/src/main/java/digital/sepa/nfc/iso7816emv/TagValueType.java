@@ -17,10 +17,10 @@ package digital.sepa.nfc.iso7816emv;
 
 /**
  * source https://code.google.com/p/javaemvreader/
- * 
+ *
  * @author sasc
  */
 public enum TagValueType {
-	// COMPRESSED_NUMERIC (trailing 'F's),
-	BINARY, NUMERIC, TEXT, MIXED, DOL, TEMPLATE,
+    // COMPRESSED_NUMERIC (trailing 'F's),
+    BINARY, NUMERIC, TEXT, MIXED, DOL, TEMPLATE,
 }
