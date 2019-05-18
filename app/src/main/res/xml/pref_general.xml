@@ -1,0 +1,14 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="perform_full_file_scan"
+        android:summaryOn="@string/pref_description_perform_full_file_scan_true"
+        android:summaryOff="@string/pref_description_perform_full_file_scan_false"
+        android:title="@string/pref_title_perform_full_file_scan" />
+
+    <Preference android:title="@string/pref_title_system_nfc_settings" >
+        <intent android:action="android.settings.NFC_SETTINGS" />
+    </Preference>
+
+</PreferenceScreen>
