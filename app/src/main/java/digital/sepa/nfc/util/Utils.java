@@ -17,7 +17,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -34,6 +37,41 @@ public class Utils {
      * Log tag
      */
     public final static String TAG = "SEPA.digital";
+
+
+    public static final String BASEURL = "https://sepa.digital/pan/";
+    private static final String HASHPREFIX = "card.sepa.digital/";
+
+    /**
+     * --> öffne browser mit URL:
+     * https://sepa.digital/pan/<hash-wert>
+     *
+     * <hash-wert> --> "card.sepa.digital/" + <cardhash>
+     * <cardhash> --> sha256('4242******4242') [maskierte pan]
+     */
+
+
+    /**
+     * return the URL to be called
+     *
+     * @param pan
+     * @return
+     */
+    public static String getPanUrl(String pan) {
+        try {
+            return BASEURL + HASHPREFIX + bytesToHex(sha256(pan));
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, "NoSuchAlgorithmException, should never hppen: ", e);
+            return BASEURL + "error";
+        }
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static byte[] sha256(String input) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        return digest.digest(input.getBytes(StandardCharsets.UTF_8));
+    }
 
     private static SimpleDateFormat fullTimeWithDateFormat = new SimpleDateFormat(
             "dd.MM.yyyy HH:mm:ss", Locale.US);

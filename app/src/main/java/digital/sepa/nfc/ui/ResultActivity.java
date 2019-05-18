@@ -4,8 +4,12 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import digital.sepa.nfc.AppController;
 import digital.sepa.nfc.R;
+import digital.sepa.nfc.util.Utils;
+
+import static digital.sepa.nfc.util.Utils.TAG;
 
 // TODO: maybe also add share action for general and transations fragment
 
@@ -34,6 +38,7 @@ public class ResultActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "JZJZ resultActivity onCreate");
         setContentView(R.layout.activity_result);
     }
 

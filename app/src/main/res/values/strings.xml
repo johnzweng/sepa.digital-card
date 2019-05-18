@@ -111,5 +111,9 @@
     <string name="cryptogram_type_aac">If contactless payment: The card immediately declined this transaction offline.\nIf contact payment: Either the card or the bank (online) has rejected this transaction.</string>
     <string name="cryptogram_type_rfu">This type is reserved for future use.</string>
     <string name="open_wireless_settings">Open NFC Settings...</string>
+    <string name="dialog_title_pan_not_found">PAN not found</string>
+    <string name="dialog_text_pan_not_found">In principal this card should be supported, but teh PAN
+        (card
+    </string>
 
 </resources>

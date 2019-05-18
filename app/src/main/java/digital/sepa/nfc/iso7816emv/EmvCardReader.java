@@ -292,17 +292,17 @@ public class EmvCardReader {
         byte[] panBytes = findPAN(tagList);
         if (panBytes != null && panBytes.length > 0) {
             String panString = bytesToHex(panBytes);
-            Log.i(TAG, "XXX PAN raw: " + panString);
+            Log.i(TAG, "JZJZ PAN raw: " + panString);
             if (panString.matches("^[0-9]+F*$")) {
 
                 int indexF = panString.indexOf('F');
                 if (indexF>-1) {
                     panString = panString.substring(0,indexF);
                 }
-                Log.i(TAG, "XXX PAN final: " + panString);
+                Log.i(TAG, "JZJZ PAN final: " + panString);
                 result.setPersonalAccounNumber(panString);
             } else {
-                Log.w(TAG, "raw PAN looks invalid: " + panString);
+                Log.w(TAG, "JZJZ raw PAN looks invalid: " + panString);
             }
         }
         return result;

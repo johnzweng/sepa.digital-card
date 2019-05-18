@@ -61,7 +61,7 @@ public class AppController {
     }
 
     /**
-     * @param _cardInfo the cardInfo to set
+     * @param cardInfo the cardInfo to set
      */
     public void setCardInfo(CardInfo cardInfo) {
         this.cardInfo = cardInfo;

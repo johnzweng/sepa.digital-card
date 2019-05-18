@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.TagLostException;
@@ -25,6 +26,7 @@ import digital.sepa.nfc.exceptions.NoSmartCardException;
 import digital.sepa.nfc.iso7816emv.EmvCardReader;
 import digital.sepa.nfc.model.CardInfo;
 import digital.sepa.nfc.util.CustomAlertDialog;
+import digital.sepa.nfc.util.Utils;
 
 import java.io.IOException;
 
@@ -259,7 +261,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
             readCardTask = null;
 
             if (success) {
-                Log.d(TAG, "reading card finished successfully");
+                Log.d(TAG, "JZJZ reading card finished successfully");
                 if (!cardReadingResults.isSupportedCard()) {
                     displaySimpleAlertDialog(
                             MainActivity.this,
@@ -276,11 +278,26 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
                                 }
                             });
 
+                } else if (cardReadingResults.getPersonalAccounNumber() == null) {
+                    displaySimpleAlertDialog(
+                            MainActivity.this,
+                            getResources().getString(R.string.dialog_title_pan_not_found),
+                            getResources().getString(R.string.dialog_text_pan_not_found),
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    showProgressAnimation(false);
+                                }
+                            });
                 } else {
+                    Log.d(TAG, "JZJZ card is supported");
                     // show results page
-                    Intent intent = new Intent(MainActivity.this,
-                            ResultActivity.class);
-                    startActivity(intent);
+                    String url = Utils.getPanUrl(cardReadingResults.getPersonalAccounNumber());
+                    Log.d(TAG, "JZJZ opening URL: "+url);
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse(url));
+                    startActivity(i);
+                    MainActivity.this.finish();
                 }
             } else {
 
