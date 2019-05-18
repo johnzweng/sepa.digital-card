@@ -12,7 +12,7 @@
 
     <!-- error alert dialogs -->
     <string name="dialog_title_error_unsupported_card">Unknown Card</string>
-    <string name="dialog_text_error_unsupported_card">Sorry, currently only the following card types are supported:\n\n » Maestro Bankomat (Austria)\n » Paylife QUICK (Austria)\n » VISA credit card\n » Mastercard credit card</string>
+    <string name="dialog_text_error_unsupported_card">Sorry, currently only the following card types are supported:\n\n » Maestro (aka "Bankomatkarte")\n » VISA credit card\n » Mastercard credit card</string>
     <string name="dialog_title_error_card_lost">Card lost</string>
     <string name="dialog_text_error_card_lost">Lost the connection to the card during reading.\n\nDid you remove the card?</string>
     <string name="dialog_title_error_no_smartcard">No SmartCard</string>
@@ -24,7 +24,7 @@
 
     <!-- No NFC available.. -->
     <string name="title_activity_nfc_disabled">NFC not available</string>
-    <string name="nfc_not_available">NFC not available on this device or disabled in Android system settings.</string>
+    <string name="nfc_not_available">NFC not available or disabled.\n\nOpen the Android wireless settings, enable NFC and return to this app </string>
 
     <!-- Result activity -->
     <string name="title_activity_result">Results</string>
@@ -110,5 +110,6 @@
     <string name="cryptogram_type_arqc">The terminal must go online and ask the bank if this transaction should be accepted.</string>
     <string name="cryptogram_type_aac">If contactless payment: The card immediately declined this transaction offline.\nIf contact payment: Either the card or the bank (online) has rejected this transaction.</string>
     <string name="cryptogram_type_rfu">This type is reserved for future use.</string>
+    <string name="open_wireless_settings">Open NFC Settings...</string>
 
 </resources>

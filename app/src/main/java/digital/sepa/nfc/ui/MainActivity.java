@@ -10,6 +10,7 @@ import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.TagLostException;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -17,11 +18,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import digital.sepa.nfc.AppController;
+import digital.sepa.nfc.R;
 import digital.sepa.nfc.exceptions.NoSmartCardException;
 import digital.sepa.nfc.iso7816emv.NfcBankomatCardReader;
 import digital.sepa.nfc.model.CardInfo;
 import digital.sepa.nfc.util.CustomAlertDialog;
-import digital.sepa.nfc.R;
 
 import java.io.IOException;
 
@@ -32,21 +33,21 @@ import static digital.sepa.nfc.util.Utils.*;
  *
  * @author Johannes Zweng <johannes@zweng.at>
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements NfcAdapter.ReaderCallback {
 
     // for NFC stuff
-    private PendingIntent _pendingIntent;
-    private IntentFilter[] _filters;
-    private String[][] _techLists;
-    private NfcAdapter _nfcAdapter;
+    private PendingIntent pendingIntent;
+    private IntentFilter[] filters;
+    private String[][] techLists;
+    private NfcAdapter nfcAdapter;
 
     // View elements
-    private View _viewNfcLogo;
-    private View _viewTextViewShowCard;
-    private View _viewProgressStatus;
+    private View viewNfcLogo;
+    private View viewTextViewShowCard;
+    private View viewProgressStatus;
 
-    private CardInfo _cardReadingResults;
-    private ReadNfcCardTask _readCardTask;
+    private CardInfo cardReadingResults;
+    private ReadNfcCardTask readCardTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +55,17 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         // find view elements
-        _viewProgressStatus = findViewById(R.id.read_card_status);
-        _viewNfcLogo = findViewById(R.id.imageViewNfcLogo);
-        _viewTextViewShowCard = findViewById(R.id.textViewYourCardPlease);
+        viewProgressStatus = findViewById(R.id.read_card_status);
+        viewNfcLogo = findViewById(R.id.imageViewNfcLogo);
+        viewTextViewShowCard = findViewById(R.id.textViewYourCardPlease);
 
         // NFC stuff
-        _pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
                 getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
-        _filters = new IntentFilter[]{new IntentFilter(
+        filters = new IntentFilter[]{new IntentFilter(
                 NfcAdapter.ACTION_TECH_DISCOVERED)};
-        _techLists = new String[][]{{"android.nfc.tech.NfcA"}};
-        _nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        techLists = new String[][]{{"android.nfc.tech.NfcA"}};
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
     }
 
@@ -78,28 +79,31 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (_nfcAdapter != null) {
-            Log.d(TAG, "enabling foreground NFC dispatch");
-            // TESTING new ReaderMode:
-            // Log.i(TAG, "enableReaderMode without P2P only NFC A");
-            // _nfcAdapter
-            // .enableReaderMode(
-            // this,
-            // this,
-            // (NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK |
-            // NfcAdapter.FLAG_READER_NFC_A),
-            // null);
-            _nfcAdapter.enableForegroundDispatch(this, _pendingIntent,
-                    _filters, _techLists);
+        if (nfcAdapter != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Log.i(TAG, "NFC enableReaderMode without P2P only NFC A");
+                nfcAdapter.enableReaderMode(this, this,
+                        (NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK | NfcAdapter.FLAG_READER_NFC_A),
+                        null);
+            } else {
+                Log.i(TAG, "enabling foreground NFC dispatch");
+                nfcAdapter.enableForegroundDispatch(this, pendingIntent,
+                        filters, techLists);
+            }
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (_nfcAdapter != null) {
-            Log.d(TAG, "disabling foreground NFC dispatch");
-            _nfcAdapter.disableForegroundDispatch(this);
+        if (nfcAdapter != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Log.i(TAG, "NFC disableReaderMode");
+                nfcAdapter.disableReaderMode(this);
+            } else {
+                Log.i(TAG, "disabling foreground NFC dispatch");
+                nfcAdapter.disableForegroundDispatch(this);
+            }
         }
     }
 
@@ -135,6 +139,16 @@ public class MainActivity extends Activity {
         return false;
     }
 
+    /**
+     * Callback when using reader mode
+     *
+     * @param tag read nfc tag
+     */
+    @Override
+    public void onTagDiscovered(Tag tag) {
+        handleTag(tag);
+    }
+
     @Override
     public void onNewIntent(Intent intent) {
         Log.d(TAG, "onNewIntent()");
@@ -149,7 +163,7 @@ public class MainActivity extends Activity {
      * in Adnroid system settings
      */
     private boolean isNfcAvailable() {
-        return (_nfcAdapter != null && _nfcAdapter.isEnabled());
+        return (nfcAdapter != null && nfcAdapter.isEnabled());
     }
 
     /**
@@ -158,24 +172,23 @@ public class MainActivity extends Activity {
      * @param show
      */
     private void showProgressAnimation(final boolean show) {
-        _viewProgressStatus.setVisibility(show ? View.VISIBLE : View.GONE);
+        viewProgressStatus.setVisibility(show ? View.VISIBLE : View.GONE);
 
-        _viewNfcLogo.setVisibility(show ? View.GONE : View.VISIBLE);
-        _viewTextViewShowCard.setVisibility(show ? View.GONE : View.VISIBLE);
+        viewNfcLogo.setVisibility(show ? View.GONE : View.VISIBLE);
+        viewTextViewShowCard.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     /**
      * Called whenever we detect a NFC Tag
-     *
      */
     private void handleTag(Tag tag) {
         showProgressAnimation(true);
-        if (_readCardTask != null) {
+        if (readCardTask != null) {
             return;
         }
         showProgressAnimation(true);
-        _readCardTask = new ReadNfcCardTask(tag);
-        _readCardTask.execute((Void) null);
+        readCardTask = new ReadNfcCardTask(tag);
+        readCardTask.execute((Void) null);
     }
 
     /**
@@ -211,9 +224,9 @@ public class MainActivity extends Activity {
                 // read setting value
                 SharedPreferences prefs = PreferenceManager
                         .getDefaultSharedPreferences(MainActivity.this);
-                _cardReadingResults = reader.readAllCardData(prefs.getBoolean(
+                cardReadingResults = reader.readAllCardData(prefs.getBoolean(
                         "perform_full_file_scan", false));
-                ctl.setCardInfo(_cardReadingResults);
+                ctl.setCardInfo(cardReadingResults);
                 reader.disconnectIsoDep();
             } catch (NoSmartCardException nsce) {
                 Log.w(TAG,
@@ -241,11 +254,11 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            _readCardTask = null;
+            readCardTask = null;
 
             if (success) {
                 Log.d(TAG, "reading card finished successfully");
-                if (!_cardReadingResults.isSupportedCard()) {
+                if (!cardReadingResults.isSupportedCard()) {
                     showProgressAnimation(false);
                     displaySimpleAlertDialog(
                             MainActivity.this,
@@ -314,7 +327,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onCancelled() {
-            _readCardTask = null;
+            readCardTask = null;
             showProgressAnimation(false);
         }
     }

@@ -28,13 +28,7 @@ public abstract class CustomAlertDialog {
 	 * Show the dialog
 	 */
 	public void show() {
-		Builder builder = new AlertDialog.Builder(_ctx);
-		if (_title != null) {
-			builder.setTitle(_title);
-		}
-		if (_message != null) {
-			builder.setMessage(_message);
-		}
+		Builder builder = Utils.buildAlertDialog(_ctx, _title, _message);
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int id) {
 				onOkClick();

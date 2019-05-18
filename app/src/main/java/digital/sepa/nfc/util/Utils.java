@@ -235,17 +235,22 @@ public class Utils {
 	 */
 	public static void displaySimpleAlertDialog(Context ctx, String title,
                                                 String message) {
-		Builder builder = new AlertDialog.Builder(ctx);
+		Builder builder = buildAlertDialog(ctx, title, message);
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int id) {
+			}
+		}).create().show();
+	}
+
+	static Builder buildAlertDialog(Context ctx, String title, String message) {
+		Builder builder = new Builder(ctx);
 		if (title != null) {
 			builder.setTitle(title);
 		}
 		if (message != null) {
 			builder.setMessage(message);
 		}
-		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-			}
-		}).create().show();
+		return builder;
 	}
 
 	/**
