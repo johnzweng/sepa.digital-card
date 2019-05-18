@@ -1,11 +1,7 @@
 package digital.sepa.nfc;
 
 import android.content.Context;
-import android.util.Log;
 import digital.sepa.nfc.model.CardInfo;
-import digital.sepa.nfc.util.Utils;
-
-import static digital.sepa.nfc.util.Utils.TAG;
 
 /**
  * Very simple dummy-style controller class of this app. At the moment simply
@@ -16,14 +12,12 @@ import static digital.sepa.nfc.util.Utils.TAG;
 public class AppController {
 
 
-
     /**
      * singleton instance
      */
     private static volatile AppController instance = null;
 
     private CardInfo cardInfo;
-    private StringBuilder log;
 
     /**
      * Get singleton object
@@ -40,7 +34,6 @@ public class AppController {
      */
     private AppController() {
         this.cardInfo = null;
-        this.log = new StringBuilder();
     }
 
     /**
@@ -67,30 +60,5 @@ public class AppController {
         this.cardInfo = cardInfo;
     }
 
-    /**
-     * Append line to log
-     *
-     * @param msg
-     */
-    public void log(String msg) {
-        log.append(Utils.getFullTimestampString());
-        log.append(": ");
-        log.append(msg);
-        log.append("\n");
-        Log.d(TAG, msg);
-    }
 
-    /**
-     * @return full log
-     */
-    public String getLog() {
-        return log.toString();
-    }
-
-    /**
-     * clear log
-     */
-    public void clearLog() {
-        log = new StringBuilder();
-    }
 }

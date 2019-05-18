@@ -22,12 +22,17 @@ public class CardInfo {
     private boolean masterCard;
     private int pinRetryCounter;
     private String personalAccounNumber;
+    private String cardType = "<unknown>";
     private String quickCurrency;
     private Context ctx;
 
     private List<QuickTransactionLogEntry> quickLog;
     private List<EmvTransactionLogEntry> transactionLog;
     private List<InfoKeyValuePair> infoKeyValuePairs;
+
+    private final static String MAESTRO = "Maestro";
+    private final static String VISA_CREDIT = "VISA Credit";
+    private final static String MASTERCARD_CREDIT = "Mastercard";
 
     /**
      * Constructor
@@ -184,13 +189,15 @@ public class CardInfo {
      */
     public void setMaestroCard(boolean maestroCard) {
         this.maestroCard = maestroCard;
+        this.cardType = MAESTRO;
     }
 
     /**
      * @param visaCard true if is a VISA creditcard
      */
-    public void setVisaCard(boolean visaCard) {
+    public void setVisaCreditCard(boolean visaCard) {
         this.visaCard = visaCard;
+        this.cardType=VISA_CREDIT;
     }
 
     /**
@@ -198,6 +205,7 @@ public class CardInfo {
      */
     public void setMasterCard(boolean masterCarrd) {
         this.masterCard = masterCarrd;
+        this.cardType = MASTERCARD_CREDIT;
     }
 
 
@@ -240,5 +248,9 @@ public class CardInfo {
 
     public void setPersonalAccounNumber(String personalAccounNumber) {
         this.personalAccounNumber = personalAccounNumber;
+    }
+
+    public String getCardType() {
+        return cardType;
     }
 }

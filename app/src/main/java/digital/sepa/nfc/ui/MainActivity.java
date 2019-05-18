@@ -20,17 +20,18 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import digital.sepa.nfc.AppController;
 import digital.sepa.nfc.R;
 import digital.sepa.nfc.exceptions.NoSmartCardException;
 import digital.sepa.nfc.iso7816emv.EmvCardReader;
 import digital.sepa.nfc.model.CardInfo;
-import digital.sepa.nfc.util.CustomAlertDialog;
 import digital.sepa.nfc.util.Utils;
 
 import java.io.IOException;
 
-import static digital.sepa.nfc.util.Utils.*;
+import static digital.sepa.nfc.util.Utils.TAG;
+import static digital.sepa.nfc.util.Utils.displaySimpleAlertDialog;
 
 /**
  * Startup activity
@@ -84,16 +85,16 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         }
 
         if (nfcAdapter != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Log.i(TAG, "NFC enableReaderMode without P2P only NFC A");
-                nfcAdapter.enableReaderMode(this, this,
-                        (NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK | NfcAdapter.FLAG_READER_NFC_A),
-                        null);
-            } else {
-                Log.i(TAG, "enabling foreground NFC dispatch");
-                nfcAdapter.enableForegroundDispatch(this, pendingIntent,
-                        filters, techLists);
-            }
+            //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            //                Log.i(TAG, "NFC enableReaderMode without P2P only NFC A");
+            //                nfcAdapter.enableReaderMode(this, this,
+            //                        (NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK | NfcAdapter.FLAG_READER_NFC_A),
+            //                        null);
+            //            } else {
+            Log.i(TAG, "enabling foreground NFC dispatch");
+            nfcAdapter.enableForegroundDispatch(this, pendingIntent,
+                    filters, techLists);
+            //            }
         }
     }
 
@@ -101,13 +102,13 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
     protected void onPause() {
         super.onPause();
         if (nfcAdapter != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Log.i(TAG, "NFC disableReaderMode");
-                nfcAdapter.disableReaderMode(this);
-            } else {
-                Log.i(TAG, "disabling foreground NFC dispatch");
-                nfcAdapter.disableForegroundDispatch(this);
-            }
+            //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            //                Log.i(TAG, "NFC disableReaderMode");
+            //                nfcAdapter.disableReaderMode(this);
+            //            } else {
+            Log.i(TAG, "disabling foreground NFC dispatch");
+            nfcAdapter.disableForegroundDispatch(this);
+            //            }
         }
     }
 
@@ -217,10 +218,7 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         @Override
         protected Boolean doInBackground(Void... params) {
             AppController ctl = AppController.getInstance();
-            ctl.clearLog();
             try {
-                ctl.log(getResources().getString(R.string.app_name)
-                        + " version " + getAppVersion(MainActivity.this));
                 EmvCardReader reader = new EmvCardReader(
                         nfcTag, MainActivity.this);
                 reader.connectIsoDep();
@@ -245,11 +243,6 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
             } catch (IOException e) {
                 Log.e(TAG, "Catched IOException during reading the card", e);
                 error = ERROR_IO_EX;
-                ctl.log("-----------------------------------------------");
-                ctl.log("ERROR ERROR ERROR:");
-                ctl.log("Catched IOException during reading the card:");
-                ctl.log(getStacktrace(e));
-                ctl.log("-----------------------------------------------");
                 return false;
             }
             return true;
@@ -260,109 +253,108 @@ public class MainActivity extends Activity implements NfcAdapter.ReaderCallback 
         protected void onPostExecute(final Boolean success) {
             readCardTask = null;
 
-            if (success) {
-                Log.d(TAG, "JZJZ reading card finished successfully");
-                if (!cardReadingResults.isSupportedCard()) {
-                    displaySimpleAlertDialog(
-                            MainActivity.this,
-                            getResources()
-                                    .getString(
-                                            R.string.dialog_title_error_unsupported_card),
-                            getResources()
-                                    .getString(
-                                            R.string.dialog_text_error_unsupported_card),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    showProgressAnimation(false);
-                                }
-                            });
+            try {
+                if (success) {
+                    Log.d(TAG, "reading card finished successfully");
+                    if (!cardReadingResults.isSupportedCard()) {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources()
+                                        .getString(
+                                                R.string.dialog_title_error_unsupported_card),
+                                getResources()
+                                        .getString(
+                                                R.string.dialog_text_error_unsupported_card),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
 
-                } else if (cardReadingResults.getPersonalAccounNumber() == null) {
-                    displaySimpleAlertDialog(
-                            MainActivity.this,
-                            getResources().getString(R.string.dialog_title_pan_not_found),
-                            getResources().getString(R.string.dialog_text_pan_not_found),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    showProgressAnimation(false);
-                                }
-                            });
+                    } else if (cardReadingResults.getPersonalAccounNumber() == null) {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources().getString(R.string.dialog_title_pan_not_found),
+                                getResources().getString(R.string.dialog_text_pan_not_found, cardReadingResults.getCardType()),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
+                    } else {
+                        Log.d(TAG, "card is supported");
+                        // show results page
+                        String url = Utils.getPanUrl(cardReadingResults.getPersonalAccounNumber());
+                        Log.d(TAG, "opening URL: " + url);
+                        Intent i = new Intent(Intent.ACTION_VIEW);
+                        i.setData(Uri.parse(url));
+                        startActivity(i);
+                        MainActivity.this.finish();
+                    }
                 } else {
-                    Log.d(TAG, "JZJZ card is supported");
-                    // show results page
-                    String url = Utils.getPanUrl(cardReadingResults.getPersonalAccounNumber());
-                    Log.d(TAG, "JZJZ opening URL: "+url);
-                    Intent i = new Intent(Intent.ACTION_VIEW);
-                    i.setData(Uri.parse(url));
-                    startActivity(i);
-                    MainActivity.this.finish();
-                }
-            } else {
+                    if (error == ERROR_TAG_LOST) {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources().getString(
+                                        R.string.dialog_title_error_card_lost),
+                                getResources().getString(
+                                        R.string.dialog_text_error_card_lost),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
+                    } else if (error == ERROR_NO_SMARTCARD) {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources().getString(
+                                        R.string.dialog_title_error_no_smartcard),
+                                getResources().getString(
+                                        R.string.dialog_text_error_no_smartcard),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
+                    }
+                    // In this case we still open the result Activity for allowing
+                    // the user to inspect the stacktrace in the Log tab
+                    else if (error == ERROR_IO_EX) {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources().getString(
+                                        R.string.dialog_title_error_ioexception),
+                                getResources().getString(
+                                        R.string.dialog_text_error_ioexception),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
 
-                if (error == ERROR_TAG_LOST) {
-                    displaySimpleAlertDialog(
-                            MainActivity.this,
-                            getResources().getString(
-                                    R.string.dialog_title_error_card_lost),
-                            getResources().getString(
-                                    R.string.dialog_text_error_card_lost),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    showProgressAnimation(false);
-                                }
-                            });
-                } else if (error == ERROR_NO_SMARTCARD) {
-                    displaySimpleAlertDialog(
-                            MainActivity.this,
-                            getResources().getString(
-                                    R.string.dialog_title_error_no_smartcard),
-                            getResources().getString(
-                                    R.string.dialog_text_error_no_smartcard),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    showProgressAnimation(false);
-                                }
-                            });
+                    } else {
+                        displaySimpleAlertDialog(
+                                MainActivity.this,
+                                getResources().getString(
+                                        R.string.dialog_title_error_unknown),
+                                getResources().getString(
+                                        R.string.dialog_text_error_unknown),
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        showProgressAnimation(false);
+                                    }
+                                });
+                    }
                 }
-                // In this case we still open the result Activity for allowing
-                // the user to inspect the stacktrace in the Log tab
-                else if (error == ERROR_IO_EX) {
-                    new CustomAlertDialog(MainActivity.this,
-                            getResources().getString(
-                                    R.string.dialog_title_error_ioexception),
-                            getResources().getString(
-                                    R.string.dialog_text_error_ioexception)) {
-
-                        /**
-                         * First show the alert dialog, and when user clicks ok,
-                         * show the result
-                         */
-                        @Override
-                        public void onOkClick() {
-                            // show results page
-                            Intent intent = new Intent(MainActivity.this,
-                                    ResultActivity.class);
-                            startActivity(intent);
-                        }
-                    }.show();
-                } else {
-                    displaySimpleAlertDialog(
-                            MainActivity.this,
-                            getResources().getString(
-                                    R.string.dialog_title_error_unknown),
-                            getResources().getString(
-                                    R.string.dialog_text_error_unknown),
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    showProgressAnimation(false);
-                                }
-                            });
-                }
+            } catch (Exception e) {
+                Toast.makeText(MainActivity.this, getString(R.string.toast_exception) + " " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         }
 

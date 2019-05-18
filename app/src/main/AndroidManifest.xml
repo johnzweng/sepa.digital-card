@@ -42,16 +42,6 @@
                     android:value=".ui.MainActivity"/>
         </activity>
 
-        <!-- Displays reading results -->
-        <activity
-                android:name=".ui.ResultActivity"
-                android:configChanges="orientation|screenSize"
-                android:parentActivityName=".ui.MainActivity"
-                android:label="@string/title_activity_result">
-            <meta-data
-                    android:name="android.support.PARENT_ACTIVITY"
-                    android:value=".ui.MainActivity"/>
-        </activity>
         <!-- Settings -->
         <activity
                 android:name=".ui.SettingsActivity"

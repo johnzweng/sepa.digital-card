@@ -57,13 +57,23 @@ public class Utils {
      * @param pan
      * @return
      */
-    public static String getPanUrl(String pan) {
-        try {
-            return BASEURL + HASHPREFIX + bytesToHex(sha256(pan));
-        } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, "NoSuchAlgorithmException, should never hppen: ", e);
-            return BASEURL + "error";
+    public static String getPanUrl(String pan) throws NoSuchAlgorithmException {
+        if (pan == null || pan.length() < 7) {
+            throw new RuntimeException("PAN is null or length <7");
         }
+        Log.d(TAG, "Hashing URI/PAN String: " + HASHPREFIX + pan);
+        String hashedUriPan = bytesToHex(sha256(HASHPREFIX + pan));
+        Log.d(TAG, "SHA256 URI/PAN: " + hashedUriPan);
+
+        Log.d(TAG, "Full PAN: " + pan);
+        String maskedPan = pan.substring(0, 4) + pan.substring(pan.length() - 3);
+        Log.d(TAG, "Masked PAN: " + maskedPan);
+        String sha256HashedMaskedPan = bytesToHex(sha256(maskedPan));
+        Log.d(TAG, "SHA256 of Masked PAN: " + sha256HashedMaskedPan);
+
+        String panUrl = BASEURL + hashedUriPan + "/" + sha256HashedMaskedPan;
+        Log.d(TAG, "Full PAN URL: " + panUrl);
+        return panUrl;
     }
 
 

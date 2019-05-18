@@ -4,7 +4,6 @@ import android.content.Context;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.util.Log;
-import digital.sepa.nfc.AppController;
 import digital.sepa.nfc.R;
 import digital.sepa.nfc.exceptions.NoSmartCardException;
 import digital.sepa.nfc.exceptions.TlvParsingException;
@@ -28,7 +27,6 @@ import static digital.sepa.nfc.util.Utils.*;
 public class EmvCardReader {
     private Tag nfcTag;
     private IsoDep localIsoDep;
-    private AppController controller;
     private List<TagAndValue> tagList;
     private Context ctx;
 
@@ -91,7 +89,6 @@ public class EmvCardReader {
     public EmvCardReader(Tag nfcTag, Context ctx) {
         super();
         this.nfcTag = nfcTag;
-        this.controller = AppController.getInstance();
         this.tagList = new ArrayList<TagAndValue>();
         this.ctx = ctx;
     }
@@ -129,15 +126,9 @@ public class EmvCardReader {
     public CardInfo readAllCardData(boolean performFullFileScan)
             throws IOException {
         CardInfo result = new CardInfo(ctx);
-        controller.log("Starting to read data from card..");
         result.addSectionHeader(ctx.getResources().getString(
                 R.string.section_nfc));
         result.setNfcTagId(nfcTag.getId());
-        controller.log("NFC Tag ID: "
-                + prettyPrintString(bytesToHex(nfcTag.getId()), 2));
-        controller.log("Historical bytes: "
-                + prettyPrintString(
-                bytesToHex(localIsoDep.getHistoricalBytes()), 2));
         result.addSectionHeader(ctx.getResources().getString(
                 R.string.section_GPCS_CPLC));
         //result = readCPLCInfos(result);
@@ -147,7 +138,6 @@ public class EmvCardReader {
         result = readMaestroCardInfos(result, performFullFileScan);
         result = readVisaCardInfos(result, performFullFileScan);
         result = readMastercardInfos(result, performFullFileScan);
-        controller.log("FINISHED! :-)");
         return result;
     }
 
@@ -163,11 +153,9 @@ public class EmvCardReader {
     private CardInfo readMaestroCardInfos(CardInfo result, boolean fullFileScan)
             throws IOException {
         Log.d(TAG, "check if card contains MAESTRO AID..");
-        controller.log("Trying to select Maestro AID..");
         byte[] selectAidResponse = selectApplicationGetBytes(APPLICATION_ID_EMV_MAESTRO_BANKOMAT);
         parseAndSaveBerTlvResponse(selectAidResponse);
         boolean isMaestroCard = isStatusSuccess(getLast2Bytes(selectAidResponse));
-        controller.log("is a MAESTRO card: " + isMaestroCard);
         result.setMaestroCard(isMaestroCard);
         if (!isMaestroCard) {
             return result;
@@ -178,12 +166,8 @@ public class EmvCardReader {
         try {
             result = readEmvData(selectAidResponse, result, fullFileScan);
         } catch (RuntimeException re) {
-            controller.log("ERROR: Catched Exception while reading Maestro infos:\n"
-                    + re + "\n" + re.getMessage());
             Log.w(TAG, "Catched Exception while reading Maestro infos: ", re);
         } catch (TlvParsingException tle) {
-            controller.log("ERROR: Catched Exception while reading Maestro infos:\n"
-                    + tle + "\n" + tle.getMessage());
             Log.w(TAG, "Catched Exception while reading Maestro infos: ", tle);
         }
         return result;
@@ -200,11 +184,9 @@ public class EmvCardReader {
     private CardInfo readMastercardInfos(CardInfo result, boolean fullFileScan)
             throws IOException {
         Log.d(TAG, "check if card contains Mastercard Creditcard AID..");
-        controller.log("Trying to select Mastercard Creditcard AID..");
         byte[] selectAidResponse = selectApplicationGetBytes(APPLICATION_ID_EMV_MASTERCARD);
         parseAndSaveBerTlvResponse(selectAidResponse);
         boolean isMastercard = isStatusSuccess(getLast2Bytes(selectAidResponse));
-        controller.log("is a Mastercard Creditcard: " + isMastercard);
         result.setMasterCard(isMastercard);
         if (!isMastercard) {
             return result;
@@ -215,13 +197,9 @@ public class EmvCardReader {
         try {
             result = readEmvData(selectAidResponse, result, fullFileScan);
         } catch (RuntimeException re) {
-            controller.log("ERROR: Catched Exception while reading mastercard infos:\n"
-                    + re + "\n" + re.getMessage());
             Log.w(TAG, "Catched Exception while reading mastercard  infos: ",
                     re);
         } catch (TlvParsingException tle) {
-            controller.log("ERROR: Catched Exception while reading mastercard  infos:\n"
-                    + tle + "\n" + tle.getMessage());
             Log.w(TAG, "Catched Exception while reading mastercard  infos: ",
                     tle);
         }
@@ -239,12 +217,10 @@ public class EmvCardReader {
     private CardInfo readVisaCardInfos(CardInfo result, boolean fullFileScan)
             throws IOException {
         Log.d(TAG, "check if card contains VISA Creditcard AID..");
-        controller.log("Trying to select VISA Creditcard AID..");
         byte[] selectAidResponse = selectApplicationGetBytes(APPLICATION_ID_EMV_VISA_CREDITCARD);
         parseAndSaveBerTlvResponse(selectAidResponse);
         boolean isVisaCard = isStatusSuccess(getLast2Bytes(selectAidResponse));
-        controller.log("is a VISA Creditcard: " + isVisaCard);
-        result.setVisaCard(isVisaCard);
+        result.setVisaCreditCard(isVisaCard);
         if (!isVisaCard) {
             return result;
         }
@@ -254,12 +230,8 @@ public class EmvCardReader {
         try {
             result = readEmvData(selectAidResponse, result, fullFileScan);
         } catch (RuntimeException re) {
-            controller.log("ERROR: Catched Exception while reading VISA card infos:\n"
-                    + re + "\n" + re.getMessage());
             Log.w(TAG, "Catched Exception while reading VISA card infos: ", re);
         } catch (TlvParsingException tle) {
-            controller.log("ERROR: Catched Exception while reading VISA card infos:\n"
-                    + tle + "\n" + tle.getMessage());
             Log.w(TAG, "Catched Exception while reading VISA card infos: ", tle);
         }
         return result;
@@ -292,17 +264,15 @@ public class EmvCardReader {
         byte[] panBytes = findPAN(tagList);
         if (panBytes != null && panBytes.length > 0) {
             String panString = bytesToHex(panBytes);
-            Log.i(TAG, "JZJZ PAN raw: " + panString);
             if (panString.matches("^[0-9]+F*$")) {
 
                 int indexF = panString.indexOf('F');
                 if (indexF>-1) {
                     panString = panString.substring(0,indexF);
                 }
-                Log.i(TAG, "JZJZ PAN final: " + panString);
                 result.setPersonalAccounNumber(panString);
             } else {
-                Log.w(TAG, "JZJZ raw PAN looks invalid: " + panString);
+                Log.w(TAG, "NO PAN FOUND!! Raw PAN looks invalid: " + panString);
             }
         }
         return result;
@@ -330,8 +300,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private void tryToReadLogFormat() throws IOException {
-        controller.log("trying to send GET DATA to get 'Log Format' tag from  card...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_PIN_RETRY_COUNTER));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_LOG_FORMAT);
         _logFormatResponse = bytesToHex(resultPdu);
@@ -347,8 +315,6 @@ public class EmvCardReader {
      */
     private CardInfo tryToReadPinRetryCounter(CardInfo result)
             throws IOException, TlvParsingException {
-        controller.log("trying to read PIN retry counter from card...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_PIN_RETRY_COUNTER));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_PIN_RETRY_COUNTER);
         logResultPdu(resultPdu);
@@ -356,10 +322,6 @@ public class EmvCardReader {
         if (isStatusSuccess(getLast2Bytes(resultPdu))) {
             BERTLV tlv = getNextTLV(new ByteArrayInputStream(resultPdu));
             int pinRetryCounter = tlv.getValueBytes()[0];
-            controller.log("-----------------------------------------------------");
-            controller.log("  Current PIN retry counter: >>>>>> " + pinRetryCounter
-                    + " <<<<<<");
-            controller.log("-----------------------------------------------------");
             result.setPinRetryCounter(pinRetryCounter);
         }
         return result;
@@ -374,46 +336,30 @@ public class EmvCardReader {
      */
     private void tryToReadAdditionalGetDataFields() throws IOException,
             TlvParsingException {
-        controller.log("trying to send GET DATA for getting 'card risk management currency(?)'...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_CRM_CURRENCY));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_CRM_CURRENCY);
         logResultPdu(resultPdu);
         parseAndSaveBerTlvResponse(resultPdu);
 
-        controller.log("trying to send GET DATA for getting 'card risk management country(?)'...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_CRM_COUNTRY));
         resultPdu = localIsoDep.transceive(EMV_COMMAND_GET_DATA_CRM_COUNTRY);
         logResultPdu(resultPdu);
         parseAndSaveBerTlvResponse(resultPdu);
 
-        controller.log("trying to send GET DATA for getting 'lower consecutive offline limit(?)'...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_LOWER_CONSECUTIVE_OFFLINE_LIMIT));
         resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_LOWER_CONSECUTIVE_OFFLINE_LIMIT);
         logResultPdu(resultPdu);
         parseAndSaveBerTlvResponse(resultPdu);
 
-        controller.log("trying to send GET DATA for getting 'upper consecutive offline limit(?)'...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_UPPER_CONSECUTIVE_OFFLINE_LIMIT));
         resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_UPPER_CONSECUTIVE_OFFLINE_LIMIT);
         logResultPdu(resultPdu);
         parseAndSaveBerTlvResponse(resultPdu);
 
-        controller.log("trying to send GET DATA for getting 'lower cumulative offline tx amount(?)'...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_LOWER_CUMULATIVE_TX_AMOUNT));
         resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_LOWER_CUMULATIVE_TX_AMOUNT);
         logResultPdu(resultPdu);
         parseAndSaveBerTlvResponse(resultPdu);
 
-        controller.log("trying to send GET DATA for getting 'upper cumulative offline tx amount(?)'...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_UPPER_CUMULATIVE_TX_AMOUNT));
         resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_UPPER_CUMULATIVE_TX_AMOUNT);
         logResultPdu(resultPdu);
@@ -426,8 +372,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private void tryToReadCurrentAtcValue() throws IOException {
-        controller.log("trying to send GET DATA for getting 'ATC' (current application transaction counter)...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_APP_TX_COUNTER));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_APP_TX_COUNTER);
         logResultPdu(resultPdu);
@@ -440,9 +384,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private void tryToReadLastOnlineAtcRegisterValue() throws IOException {
-        controller.log("trying to send GET DATA for getting 'Last online ATC Register' (application transaction counter of last online transaction)...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_LAST_ONLINE_APP_TX_COUNTER));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_LAST_ONLINE_APP_TX_COUNTER);
         logResultPdu(resultPdu);
@@ -455,9 +396,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private void tryToReadAllCommonSimpleTlvTags() throws IOException {
-        controller.log("trying to send command for getting all common simple TLV tags...");
-        controller.log("sent: "
-                + bytesToHex(EMV_COMMAND_GET_DATA_ALL_COMMON_SIMPLE_TLV));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_ALL_COMMON_SIMPLE_TLV);
         logResultPdu(resultPdu);
@@ -470,8 +408,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private void tryToReadAllCommonBerTlvTags() throws IOException {
-        controller.log("trying to send command for getting all common BER TLV tags...");
-        controller.log("sent: " + bytesToHex(EMV_COMMAND_GET_DATA_ALL_COMMON_BER_TLV));
         byte[] resultPdu = localIsoDep
                 .transceive(EMV_COMMAND_GET_DATA_ALL_COMMON_BER_TLV);
         logResultPdu(resultPdu);
@@ -496,8 +432,6 @@ public class EmvCardReader {
     private void tryToVerifyPlaintextPin(String pin) throws IOException {
         // this just performs PLAINTEXT pin verification (not supported on
         // modern cards)
-        // TODO: maybe implement enciphered PIN verification..
-        controller.log("trying to VERIFY PLAINTEXT PIN: " + pin);
         byte[] resultPdu = localIsoDep.transceive(createApduVerifyPIN(pin,
                 true));
         logResultPdu(resultPdu);
@@ -505,7 +439,6 @@ public class EmvCardReader {
     }
 
     private byte[] transceiveAndLog(byte[] data) throws IOException {
-        controller.log("sending: " + bytesToHex(data));
         return localIsoDep.transceive(data);
     }
 
@@ -552,7 +485,6 @@ public class EmvCardReader {
      */
     private CardInfo searchForFiles(CardInfo result, boolean fullFileScan,
                                     boolean tryToParse) throws IOException {
-        controller.log("We ignore the cards 'Application File Locator' and just iterate over files here..");
 
         // we now simply check in 2 loops a lot of files and records if they
         // return BER-TLV encoded data or Transaction Logs
@@ -606,7 +538,6 @@ public class EmvCardReader {
                             EmvTransactionLogEntry txLogEntry = tryToParseLogEntry(responsePdu);
                             if (txLogEntry != null) {
                                 txList.add(txLogEntry);
-                                controller.log(txLogEntry.toString());
                             }
                         } else {
                             // avoid that a single unparsable record may abort
@@ -713,7 +644,6 @@ public class EmvCardReader {
                     + e + "\n" + e.getMessage() + "\nraw byte array:\n"
                     + prettyPrintString(bytesToHex(rawRecord), 2);
             Log.w(TAG, msg, e);
-            controller.log(msg);
             return null;
         }
         return tx;
@@ -772,7 +702,6 @@ public class EmvCardReader {
                     + e + "\n" + e.getMessage() + "\nraw byte array:\n"
                     + prettyPrintString(bytesToHex(rawRecord), 2);
             Log.w(TAG, msg, e);
-            controller.log(msg);
             return null;
         }
         return tx;
@@ -841,7 +770,6 @@ public class EmvCardReader {
                     + e + "\n" + e.getMessage() + "\nraw byte array:\n"
                     + prettyPrintString(bytesToHex(rawRecord), 2);
             Log.w(TAG, msg, e);
-            controller.log(msg);
             return null;
         }
         return tx;
@@ -866,8 +794,6 @@ public class EmvCardReader {
             String msg = "READ RECORD for EF " + shortEfFileIdentifier
                     + " and RECORD " + recordNumber;
             Log.d(TAG, msg);
-            controller.log(msg);
-            controller.log("sent: " + bytesToHex(readRecordApdu));
             logResultPdu(resultPdu);
         }
         return resultPdu;
@@ -887,8 +813,6 @@ public class EmvCardReader {
         if (isStatusSuccess(getLast2Bytes(resultPdu))) {
             String msg = "SELECT MF  (cd / ) ";
             Log.d(TAG, msg);
-            controller.log(msg);
-            controller.log("sent: " + bytesToHex(readRecordApdu));
             logResultPdu(resultPdu);
         }
         return resultPdu;
@@ -907,8 +831,6 @@ public class EmvCardReader {
         if (isStatusSuccess(getLast2Bytes(resultPdu))) {
             String msg = "SELECT parent DF  (cd .. ) ";
             Log.d(TAG, msg);
-            controller.log(msg);
-            controller.log("sent: " + bytesToHex(readRecordApdu));
             logResultPdu(resultPdu);
         }
         return resultPdu;
@@ -919,8 +841,6 @@ public class EmvCardReader {
      * @throws IOException
      */
     private long getQuickCardBalance() throws IOException {
-        controller.log("Reading QUICK balance");
-        controller.log("sent: " + bytesToHex(ISO_COMMAND_QUICK_READ_BALANCE));
         byte[] resultPdu = localIsoDep
                 .transceive(ISO_COMMAND_QUICK_READ_BALANCE);
         logResultPdu(resultPdu);
@@ -929,11 +849,9 @@ public class EmvCardReader {
                     "getQuickCardBalance: Response status word was not ok! Error: "
                             + statusToString(getLast2Bytes(resultPdu))
                             + ". In hex: " + bytesToHex(resultPdu));
-            controller.log("will return balance -1");
             return -1;
         }
         long balance = getAmountFromBytes(resultPdu);
-        controller.log("QUICK balance = " + balance);
         return balance;
     }
 
@@ -944,8 +862,6 @@ public class EmvCardReader {
      */
     private byte[] getQuickCardCurrencyBytes() throws IOException,
             TlvParsingException {
-        controller.log("Reading QUICK currency");
-        controller.log("sent: " + bytesToHex(ISO_COMMAND_QUICK_READ_CURRENCY));
         byte[] resultPdu = localIsoDep
                 .transceive(ISO_COMMAND_QUICK_READ_CURRENCY);
         logResultPdu(resultPdu);
@@ -961,10 +877,6 @@ public class EmvCardReader {
         }
         byte[] rawCurrency = new byte[2];
         System.arraycopy(resultPdu, 0, rawCurrency, 0, 2);
-        controller.log("QUICK currency = "
-                + prettyPrintString(bytesToHex(rawCurrency), 2));
-        controller.log("QUICK currency = "
-                + Iso4217CurrencyCodes.getCurrencyAsString(rawCurrency));
         return rawCurrency;
     }
 
@@ -980,7 +892,6 @@ public class EmvCardReader {
         Log.d(TAG, "sending GET CPLC command..");
         byte[] command = EmvUtils.GPCS_GET_CPLC_COMMAND;
         Log.d(TAG, "will send byte array: " + bytesToHex(command));
-        controller.log("sent: " + bytesToHex(command));
         byte[] resultPdu = localIsoDep.transceive(command);
         logResultPdu(resultPdu);
         Log.d(TAG, "received byte array:  " + bytesToHex(resultPdu));
@@ -996,7 +907,6 @@ public class EmvCardReader {
             Log.d(TAG, "sending GET CPLC command with Le set..");
             command = EmvUtils.GPCS_GET_CPLC_COMMAND_WITH_LENGTH;
             Log.d(TAG, "will send byte array: " + bytesToHex(command));
-            controller.log("sent: " + bytesToHex(command));
             resultPdu = localIsoDep.transceive(command);
             logResultPdu(resultPdu);
             Log.d(TAG, "received byte array:  " + bytesToHex(resultPdu));
@@ -1016,7 +926,6 @@ public class EmvCardReader {
                 + bytesToHex(appId));
         byte[] command = createSelectAid(appId);
         Log.d(TAG, "will send byte array: " + bytesToHex(command));
-        controller.log("sent: " + bytesToHex(command));
         byte[] resultPdu = localIsoDep.transceive(command);
         logResultPdu(resultPdu);
         Log.d(TAG, "received byte array:  " + bytesToHex(resultPdu));
@@ -1035,10 +944,6 @@ public class EmvCardReader {
                         + prettyPrintString(
                         bytesToHex(getLast2Bytes(resultPdu)), 2));
         Log.d(TAG, "status: " + statusToString(getLast2Bytes(resultPdu)));
-        controller.log("received: " + bytesToHex(resultPdu));
-        controller.log("status: "
-                + prettyPrintString(bytesToHex(getLast2Bytes(resultPdu)), 2)
-                + " - " + statusToString(getLast2Bytes(resultPdu)));
     }
 
     /**
@@ -1050,12 +955,9 @@ public class EmvCardReader {
         if (resultPdu.length > 2) {
             try {
                 byte[] data = cutoffLast2Bytes(resultPdu);
-                controller.log("Trying to decode response as BER-TLV..");
-                controller.log(prettyPrintBerTlvAPDUResponse(data, 0));
                 // and add all found tags to list
                 tagList.addAll(getTagsFromBerTlvAPDUResponse(data));
             } catch (TlvParsingException e) {
-                controller.log("decoding error... maybe this data is not BER-TLV encoded?");
                 Log.w(TAG, "exception while parsing BER-TLV PDU response\n"
                         + prettyPrintString(bytesToHex(resultPdu), 2), e);
             }
